@@ -13,7 +13,7 @@ class SA:
 
     @staticmethod
     def validate():
-        if (SA.S() and SA.token_list[SA.current_index].cp == "$"):
+        if (SA.S() and SA.token_set[SA.current_index].cp == "$"):
             return True
         return False
 
@@ -22,8 +22,8 @@ class SA:
         cp = SA.token_set[SA.current_index].cp
 
         # ? selection_set => {DT, ID, while, for, if, return, break, continue, pass}
-        if (cp in ['data_type', 'idenitifier', 'while', 'for', 'if', 'return', 'break', 'continue', 'pass']):
-            if (SA.SST() and SA.S()):
+        if (cp in ['data_type', 'idenitifier', 'while', 'for', 'if', 'return', 'jump_statements']):
+            if (SA.sst() and SA.S()):
                 return True
 
         # ? selection set => {final, static, abstract,  class, func, interface}
@@ -67,7 +67,7 @@ class SA:
             return True
 
         # ? {DT, ID, while, for, if, return, break, continue, pass, final, static, abstract,  class, func, $}
-        elif (cp in ['data_type', 'idenitifier', 'while', 'for', 'if', 'return', 'break', 'continue', 'pass', 'final', 'static', 'abstract', 'class', 'func', 'end_marker']):
+        elif (cp in ['data_type', 'idenitifier', 'while', 'for', 'if', 'return', 'jump_statements', 'final', 'static', 'abstract', 'class', 'func', 'end_marker']):
             return True
 
         return False
@@ -176,7 +176,7 @@ class SA:
             return True
 
         # ? selection_set => {DT, ID, while, for, if, return,  break, continue, pass}
-        elif (cp in ['data_type', 'identifier', 'while', 'for', 'if', 'return', 'break', 'continue', 'pass']):
+        elif (cp in ['data_type', 'identifier', 'while', 'for', 'if', 'return', 'jump_statements']):
             return True
 
         return False
@@ -191,7 +191,7 @@ class SA:
                 return True
 
         # ? selection_set => { ) , ] }
-        if (cp in [')', ']']):
+        elif (cp in [')', ']']):
             return True
 
         return False
@@ -206,8 +206,8 @@ class SA:
             if (SA.OE() and SA.p1()):
                 return True
 
-        # ? selection_set => { ) }
-        elif (cp == ')'):
+        # ? selection_set => { ), ] }
+        elif (cp == ')' or cp == ']'):
             return True
 
         return False
@@ -219,6 +219,397 @@ class SA:
         # ? selection_set => {func}
         if (cp == 'func'):
             SA.current_index += 1
-            if (SA.fdt1()):
+            if (SA.FDT1()):
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    if(SA.token_set[SA.current_index].cp == '('):
+                        SA.current_index += 1
+                        if(SA.para()):
+                            if(SA.token_set[SA.current_index].cp == ')'):
+                                SA.current_index += 1
+                                if(SA.token_set[SA.current_index].cp == "{"):
+                                    SA.current_index += 1
+                                    if(SA.mst()):
+                                        if(SA.token_set[SA.current_index].cp == '}'):
+                                            SA.current_index += 1
+                                            return True
+
+        return False
+
+    @staticmethod
+    def FDT():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {DT}
+        if(cp == 'data_type'):
+            SA.current_index += 1
+            if(SA.A()):
+                return True
+        # ? selection_set => {ID}
+        elif(cp == 'identifier'):
+            SA.current_index += 1
+            if(SA.A()):
+                return True
+
+        return False
+
+    @staticmethod
+    def FDT1():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {DT, ID}
+        if(cp in ['data_type', 'identifier']):
+            if(SA.FDT()):
+                return True
+        # ? selection_set => { void }
+        elif(cp == 'void'):
+            SA.current_index += 1
+            return True
+
+        return False
+
+    @staticmethod
+    def para():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {DT, ID}
+        if(cp in ['data_type', 'identifier']):
+            if(SA.FDT()):
+                if(SA.token_set[SA.current_index].cp == 'identifier'):
+                    SA.current_index += 1
+                    if(SA.s_para()):
+                        return True
+        # ? selection_set => { ) }
+        elif(cp == ')'):
+            return True
+
+        return False
+
+    @staticmethod
+    def s_para():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {  ,  }
+        if(cp == ','):
+            SA.current_index += 1
+            if(SA.FDT()):
+                if(SA.token_set[SA.current_index].cp == 'identifier'):
+                    SA.current_index += 1
+                    if(SA.s_para):
+                        return True
+        # ? selection_set => { ) }
+        elif(cp == ')'):
+            return True
+
+        return False
+
+    @staticmethod
+    def while_st():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {while}
+        if(cp == 'while'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].cp == '('):
+                SA.current_index += 1
+                if(SA.OE()):
+                    if(SA.token_set[SA.current_index].cp == ')'):
+                        SA.current_index += 1
+                        if(SA.token_set[SA.current_index].cp == '{'):
+                            SA.current_index += 1
+                            if(SA.mst()):
+                                if(SA.token_set[SA.current_index].cp == '}'):
+                                    return True
+
+        return False
+
+    @staticmethod
+    def for_st():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {for}
+        if(cp == 'for'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].cp == '('):
+                SA.current_index += 1
+                if(SA.assign_st()):
+                    if(SA.OE()):
+                        if(SA.token_set[SA.current_index].cp == ';'):
+                            SA.current_index += 1
+                            if(SA.inc_dec_st()):
+                                if(SA.token_set[SA.current_index].cp == ')'):
+                                    SA.current_index += 1
+                                    if(SA.token_set[SA.current_index].cp == '{'):
+                                        SA.current_index += 1
+                                        if(SA.mst()):
+                                            if(SA.token_set[SA.current_index].cp == '}'):
+                                                SA.current_index += 1
+                                                return True
+
+        return False
+
+    @staticmethod
+    def inc_dec_st():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {ID}
+        if(cp == 'identifier'):
+            SA.current_index += 1
+            if(SA.inc_dec_st1()):
+                if(SA.inc_dec_opr()):
+                    if(SA.token_set[SA.current_index].cp == ';'):
+                        SA.current_index += 1
+                        return True
+        # ? selection_set => { ++ , -- }
+        elif(cp == 'inc_dec'):
+            if(SA.inc_dec_opr()):
+                if(SA.token_set[SA.current_index].cp == 'identifier'):
+                    SA.current_index += 1
+                    if(SA.inc_dec_st1()):
+                        if(SA.token_set[SA.current_index].cp == ';'):
+                            SA.current_index += 1
+                            return True
+        return False
+
+    @staticmethod
+    def inc_dec_st1():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => { . }
+        if(cp == '.'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index] == 'identifier'):
+                SA.current_index += 1
+                if(SA.inc_dec_st1()):
+                    return True
+        # ? selection_set => { ( }
+        elif(cp == '('):
+            SA.current_index += 1
+            if(SA.p()):
+                if(SA.token_set[SA.current_index].cp == ')'):
+                    SA.current_index += 1
+                    if(SA.token_set[SA.current_index].cp == '.'):
+                        SA.current_index += 1
+                        if(SA.token_set[SA.current_index] == 'identifier'):
+                            SA.current_index += 1
+                            if(SA.inc_dec_st1()):
+                                return True
+        # ? selection_set => { [ }
+        elif(cp == '['):
+            SA.current_index += 1
+            if(SA.OE()):
+                if(SA.token_set[SA.current_index].cp == ']'):
+                    SA.current_index += 1
+                    if(SA.inc_dec_st2()):
+                        return True
+        # ? selection_set => {++, --, DT, ID, while, for, if, return, break, continue, pass,  ; }
+        elif (cp in ['inc_dec', 'data_type', 'identifier', 'while', 'for', 'if', 'return', 'jump_statements', ';']):
+            return True
+
+        return False
+
+    @staticmethod
+    def inc_dec_st2():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {  .  }
+        if(cp == '.'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].cp == 'identifier'):
+                SA.current_index += 1
+                if(SA.inc_dec_st1()):
+                    return True
+        # ? selection_set => { ++, --, DT, ID, while, for, if, return, break, continue, pass, ; }
+        elif (cp in ['inc_dec', 'data_type', 'identifier', 'while', 'for', 'if', 'return', 'jump_statements', ';']):
+            return True
+
+        return False
+
+    @staticmethod
+    def p():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {this, super, ID, constant, (, ! }
+        if(cp in ['this', 'super', 'identifier', 'num', '(', 'not_operator']):
+            if(SA.OE()):
+                if(SA.p1()):
+                    return True
+        # ? selection_set => { ) , ] }
+        if(cp in [')', ']']):
+            return True
+
+        return False
+
+    @staticmethod
+    def inc_dec_opr():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {++, --}
+        if(cp == 'inc_dec'):
+            SA.current_index += 1
+            return True
+
+        return False
+
+    @staticmethod
+    def sst():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {DT, ID, while, for, if, return, break, continue, pass}
+        # TODO: error handle is not included
+        if(SA.decl() or SA.while_st() or SA.for_st() or SA.if_st() or SA.func_call() or SA.AFCI() or cp in ['return', 'jump_statements']):
+            return True
+
+        return False
+
+    @staticmethod
+    def AFCI():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {ID}
+        if(cp == 'identifier'):
+            SA.current_index += 1
+            if(SA.AFCI1()):
+                return True
+
+        return False
+
+    @staticmethod
+    def AFCI1():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => { . , ( , [ }
+        if(cp in ['.', '(', '[']):
+            if(SA.inc_dec_st1()):
+                if(SA.inc_dec_opr()):
+                    return True
+        # ? selection_set => { ++ , --}
+        elif (cp == 'inc_dec'):
+            if(SA.inc_dec_opr()):
+                if(SA.token_set[SA.current_index].cp == 'identifier'):
+                    SA.current_index += 1
+                    if(SA.inc_dec_st1()):
+                        return True
+        # ? selection_set => { ( }
+        elif(cp == '('):
+            SA.current_index += 1
+            if(SA.p()):
+                if(SA.token_set[SA.current_index].cp == ')'):
+                    SA.current_index += 1
+                    if(SA.end()):
+                        return True
+        # ? selection_set =>  { . , ( , [ , = , CO as compound_assignment }
+        elif(cp in ['.', '(', '[', 'assignment', 'compound_assignment']):
+            if(SA.assign_st()):
+                if(SA.assign_op()):
+                    if(SA.OE()):
+                        return True
+        # ? selection_set => { ID }
+        elif(cp == 'identifier'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].cp == 'assignment'):
+                SA.current_index += 1
+                if(SA.token_set[SA.current_index].cp == 'new'):
+                    SA.current_index += 1
+                    if(SA.token_set[SA.current_index].cp == 'identifier'):
+                        SA.current_index += 1
+                        if(SA.token_set[SA.current_index].cp == '('):
+                            SA.current_index += 1
+                            if(SA.token_set[SA.current_index].cp == ')'):
+                                SA.current_index += 1
+                                if(SA.token_set[SA.current_index].cp == ';'):
+                                    SA.current_index += 1
+                                    return True
+
+        return False
+
+    @staticmethod
+    def mst():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {DT, ID, while, for, if, return, break, continue, pass}
+        if(cp in ['data_type', 'identifier', 'while', 'for', 'if', 'return', 'jump_statements']):
+            if(SA.sst()):
+                if(SA.mst()):
+                    return True
+        # ? selection_set => {  } , public, sealed, static, func, construct, DT, ID, while, for, if, return, break, continue, pass}
+        elif(cp in ['}', 'access_modifier', 'static', 'func', 'constructor', 'data_type', 'identifier', 'for', 'if', 'return', 'jump_statements']):
+            return True
+
+        return False
+
+    @staticmethod
+    def interface_def():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {interface}
+        if(cp == 'interface'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].cp == 'identifier'):
+                SA.current_index += 1
+                if(SA.impl()):
+                    if(SA.token_set[SA.current_index].cp == '{'):
+                        SA.current_index += 1
+                        if(SA.interface_body()):
+                            if(SA.token_set[SA.current_index].cp == '}'):
+                                SA.current_index += 1
+                                return True
+
+        return False
+
+    @staticmethod
+    def impl():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {implements}
+        if(cp == 'implements'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].cp == 'identifier'):
+                SA.current_index += 1
+                if(SA.nt()):
+                    return True
+
+        return False
+
+    @staticmethod
+    def interface_body():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {DT, ID, void}
+        if(cp in ['data_type', 'identifier', 'void']):
+            if(SA.FDT1()):
+                if(SA.token_set[SA.current_index].cp == 'identifier'):
+                    SA.current_index += 1
+                    if(SA.token_set[SA.current_index].cp == '('):
+                        SA.current_index += 1
+                        if(SA.para()):
+                            if(SA.token_set[SA.current_index].cp == ')'):
+                                SA.current_index += 1
+                                return True
+        # ? selection_set => {DT}
+        if(cp == 'data_type'):
+            if(SA.decl()):
+                return True
+
+        return False
+
+    @staticmethod
+    def nt():
+        cp = SA.token_set[SA.current_index].cp
+
+        # ? selection_set => {  , }
+        if(cp == ','):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].cp == 'identifier'):
+                SA.current_index += 1
+                if(SA.nt()):
+                    return True
+        # ? selection_set => { { }
+        elif(cp == '{'):
+            return True
+
+        return False
+
+# ! Continue from if-else-elif on page 6
+
+# TODO define assign_st(), assign_op(), class_def(), OE(),
