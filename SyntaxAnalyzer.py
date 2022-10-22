@@ -698,13 +698,73 @@ class SA:
     def Ass_st2():
         Cp = SA.token_set[SA.current_index].cp
 
-        # ? Selection Set { . , ( , [ , ] }
+        # ? Selection Set { . }
+        if (Cp == ' . '):
+            SA.current_index += 1
+            if (SA.token_set[SA.current_index].cp == "identifier"):
+                SA.current_index += 1
+                if (SA.Ass_st2()):
+                    return True
+
+        # ? Selection Set { = , compound_assignment}
+        elif (Cp in [' = ', 'compound_assignment']):
+            return True
+        return False
+
+    @staticmethod
+    def Ass_st1():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set { . }
+
         if (Cp == '.'):
             SA.current_index += 1
-            if (SA.token_set[SA.current_index].cp == '('):
+            if (SA.token_set[SA.current_index].cp == ' . '):
                 SA.current_index += 1
-                if (SA.token_set[SA.current_index].cp == '['):
+                if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
-                    if (SA.token_set[SA.current_index].cp == ']'):
+                    if (SA.Ass_st1()):
+                        return True
 
-                        # TODO define assign_st(), assign_op(), class_def(), OE(),
+            elif (Cp == ' ( '):
+                SA.current_index += 1
+                if (SA.OE()):
+                    if (SA.token_set[SA.current_index].cp == ')'):
+                        SA.current_index += 1
+                        if (SA.token_set[SA.current_index].cp == '.'):
+                            SA.current_index += 1
+                            if (SA.token_set[SA.token_set].cp == 'identifier'):
+                                SA.current_index += 1
+                                if (SA.Ass_st1()):
+                                    return True
+            # ? Selection Set { [ }
+            elif (Cp == '['):
+                SA.current_index += 1
+                if (SA.OE()):
+                    if (SA.token_set[SA.current_index].cp == ']'):
+                        SA.current_index += 1
+                        if (SA.Ass_st2()):
+                            return True
+
+            # ? Selection Set { =, compound_assignment }
+            elif (Cp in ['=', 'compound_assignment']):
+                return True
+        return False
+
+    @staticmethod
+    def Ass_op():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {=, compound_assignment}
+        if (Cp in ['=', 'compound_assignment']):
+            return True
+        return False
+
+    @staticmethod
+    def OE():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {this , super ,ID, (,!, const)
+        if (Cp in ['this', 'super', 'identifier', '(', '!', 'constant']):
+
+            # TODO define assign_st(), assign_op(), class_def(), OE(),
