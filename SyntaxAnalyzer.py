@@ -1,4 +1,7 @@
 from locale import currency
+from os import stat
+from traceback import StackSummary
+from turtle import st
 
 
 class SA:
@@ -623,7 +626,7 @@ class SA:
             SA.current_index += 1
             if (SA.token_set[SA.current_index].cp == '('):
                 SA.current_index += 1
-                if (SA.OE()):
+                if (SA.oe()):
                     if (SA.token_set[SA.current_index].cp == ')'):
                         SA.current_index += 1
                         if (SA.token_set[SA.current_index].cp == '{'):
@@ -645,7 +648,7 @@ class SA:
             SA.current_index += 1
             if (SA.token_set[SA.current_index].cp == '('):
                 SA.current_index += 1
-                if (SA.OE()):
+                if (SA.oe()):
                     if (SA.token_set[SA.current_index].cp == ')'):
                         SA.current_index += 1
                         if (SA.token_set[SA.current_index].cp == '{'):
@@ -680,22 +683,22 @@ class SA:
         return False
 
     @staticmethod
-    def Ass_st():
+    def ass_st():
         Cp = SA.token_set[SA.current_index].cp
 
         # ? Selection Set {ID}
         if (Cp == 'identifier'):
             SA.current_index += 1
-            if (SA.Ass_st1()):
-                if (SA.Ass_op()):
-                    if (SA.OE()):
-                        if (SA.token_set[SA.current_index].cp == ' ; '):
+            if (SA.ass_st1()):
+                if (SA.ass_op()):
+                    if (SA.oe()):
+                        if (SA.token_set[SA.current_index].cp == 'EOL'):
                             SA.current_index += 1
                             return True
         return False
 
     @staticmethod
-    def Ass_st2():
+    def ass_st2():
         Cp = SA.token_set[SA.current_index].cp
 
         # ? Selection Set { . }
@@ -703,47 +706,47 @@ class SA:
             SA.current_index += 1
             if (SA.token_set[SA.current_index].cp == "identifier"):
                 SA.current_index += 1
-                if (SA.Ass_st2()):
+                if (SA.ass_st2()):
                     return True
 
         # ? Selection Set { = , compound_assignment}
-        elif (Cp in [' = ', 'compound_assignment']):
+        elif (Cp in ['assignment', 'compound_assignment']):
             return True
         return False
 
     @staticmethod
-    def Ass_st1():
+    def ass_st1():
         Cp = SA.token_set[SA.current_index].cp
 
         # ? Selection Set { . }
 
         if (Cp == '.'):
             SA.current_index += 1
-            if (SA.token_set[SA.current_index].cp == ' . '):
+            if (SA.token_set[SA.current_index].cp == '.'):
                 SA.current_index += 1
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
-                    if (SA.Ass_st1()):
+                    if (SA.ass_st1()):
                         return True
 
-            elif (Cp == ' ( '):
+            elif (Cp == '('):
                 SA.current_index += 1
-                if (SA.OE()):
+                if (SA.oe()):
                     if (SA.token_set[SA.current_index].cp == ')'):
                         SA.current_index += 1
                         if (SA.token_set[SA.current_index].cp == '.'):
                             SA.current_index += 1
                             if (SA.token_set[SA.token_set].cp == 'identifier'):
                                 SA.current_index += 1
-                                if (SA.Ass_st1()):
+                                if (SA.ass_st1()):
                                     return True
             # ? Selection Set { [ }
             elif (Cp == '['):
                 SA.current_index += 1
-                if (SA.OE()):
+                if (SA.oe()):
                     if (SA.token_set[SA.current_index].cp == ']'):
                         SA.current_index += 1
-                        if (SA.Ass_st2()):
+                        if (SA.ass_st2()):
                             return True
 
             # ? Selection Set { =, compound_assignment }
@@ -752,19 +755,335 @@ class SA:
         return False
 
     @staticmethod
-    def Ass_op():
+    def ass_op():
         Cp = SA.token_set[SA.current_index].cp
 
         # ? Selection Set {=, compound_assignment}
-        if (Cp in ['=', 'compound_assignment']):
+        if (Cp in ['assignment', 'compound_assignment']):
             return True
         return False
 
     @staticmethod
-    def OE():
+    def oe():
         Cp = SA.token_set[SA.current_index].cp
 
         # ? Selection Set {this , super ,ID, (,!, const)
-        if (Cp in ['this', 'super', 'identifier', '(', '!', 'constant']):
+        if (Cp in ['this', 'super', 'identifier', '(', 'not_operator', 'num']):
+            if (SA.ae()):
+                if (SA.oe1()):
+                    return True
+        return False
 
-            # TODO define assign_st(), assign_op(), class_def(), OE(),
+    @staticmethod
+    def oe1():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set { || }
+        if (Cp == 'or_operator'):
+            if (SA.ae()):
+                if (SA.oe1()):
+                    return True
+
+        # ? Selection Set { ), ], ; ,DT, ID, while, for, if }
+        elif (Cp in [')', ']', 'EOL', 'data_type', 'identifier', 'while', 'for', 'if']):
+            return True
+        return False
+
+    @staticmethod
+    def ae():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {this , super ,ID, (,!, const}
+        if (Cp in ['this', 'super', 'identifier', '(', 'not_operator', 'num']):
+            if (SA.re()):
+                if (SA.ae1()):
+                    return True
+
+        return False
+
+    @staticmethod
+    def ae1():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {&&}
+        if (Cp == '&&'):
+            if (SA.re()):
+                if (SA.ae1()):
+                    return True
+
+        # ? Selection Set { ||, ), ], ; ,DT, ID, while, for, if }
+        elif (Cp in ['or_operator', ')', ']', 'EOL', 'data_type', 'identifier', 'while', 'for', 'if']):
+            return True
+
+        return False
+
+    @staticmethod
+    def re():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {this , super ,ID, (,!, const}
+        if (Cp in ['this', 'super', 'identifier', '(', 'nor_operator', 'num']):
+            if (SA.e()):
+                if (SA.re1()):
+                    return True
+
+    @staticmethod
+    def re1():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {RO}
+        if (Cp == 'relational_operators'):
+            if (SA.e()):
+                if (SA.re1()):
+                    return True
+
+        # ? Selection Set { && , ||, ), ], ; ,DT, ID, while, for, if }
+        elif (Cp in ['and_operator', 'or_operator', ')', ']', 'EOL', 'identifier', 'data_type', 'while', 'for', 'if']):
+            return True
+
+        return False
+
+    @staticmethod
+    def e():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {this , super ,ID, (,!, const}
+        if (Cp in ['this', 'super', 'identifier', '(', 'nor_operator', 'num']):
+            if (SA.t()):
+                if (SA.e1()):
+                    return True
+        return False
+
+    @staticmethod
+    def e1():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Secltion Set {PM}
+        if (Cp == 'PM'):
+            if (SA.t()):
+                if (SA.e1()):
+                    return True
+
+        # ? Selction Set {RO, && , ||, ), ], ; ,DT, ID, while, for, if}
+        if (Cp == 'relational_operators', 'and_oprator', 'or_operator', ')', ']', 'EOL', 'data_type', 'identifier', 'while', 'for', 'if'):
+            return True
+        return False
+
+    @staticmethod
+    def t():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {this , super ,ID, (,!, const}
+        if (Cp == 'this', 'super', 'identifier', '(', 'nor_operator', 'num'):
+            if (SA.f()):
+                if (SA.t1()):
+                    return True
+        return False
+
+    @staticmethod
+    def t1():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {MDM}
+        if (Cp == 'multiply_divide_mod'):
+            if (SA.f()):
+                if (SA.t1()):
+                    return True
+
+        # ? selection Set { PM, RO, && , ||, ), ], ; ,DT, ID, while, for, if }
+        if (Cp in ['plus_minus', 'relational_operator', 'and_operator', 'or_operator', ')', ']', 'EOL', 'data_type', 'identifier', 'while', 'for', 'if']):
+            return True
+        return False
+
+    @staticmethod
+    def f():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {this, super}
+        if (Cp in ['this', 'super']):
+            if (SA.ts()):
+                if (SA.token_set[SA.current_index].cp == 'identifier'):
+                    SA.current_index += 1
+                    if (SA.opts()):
+                        return True
+
+        # ? Selection Set {ID}
+        if (Cp == 'identifier'):
+            if (SA.opts()):
+                return True
+
+        # ? Selection Set { ( }
+        elif (Cp == '('):
+            if (SA.oe()):
+                return True
+
+        # ? Selection Set {!}
+        elif (Cp == 'nor_operator'):
+            if (SA.f()):
+                return True
+
+        # ? Selection Set {const}
+        elif (Cp == 'num'):
+            return True
+        return False
+
+    @staticmethod
+    def ts():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {this, super}
+        if (Cp in ['this', 'super']):
+            if (SA.token_set[SA.current_index].cp == 'this' | 'super'):  # not sure about this
+                return True
+
+        return False
+
+    @staticmethod
+    def opts():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set {.}
+        if (Cp == '.'):
+            if (SA.token_set[SA.current_index].cp == 'identifier'):
+                SA.current_index += 1
+                if (SA.opts()):
+                    return True
+
+        # ? selection set { ( }
+        if (Cp == '('):
+            if (SA.p()):
+                if (SA.token_set[SA.current_index].cp == ')'):
+                    SA.current_index += 1
+                    if (SA.token_set(SA.current_index).cp == '.'):
+                        SA.current_index += 1
+                        if (SA.token_set(SA.current_index).cp == 'identifier'):
+                            SA.current_index += 1
+                            if (SA.opts()):
+                                return True
+
+        # ? Selection set { [ }
+        elif (Cp == '['):
+            if (SA.oe()):
+                if (SA.token_set(SA.current_index).cp == ']'):
+                    SA.current_index += 1
+                    if (SA.opts1()):
+                        return True
+
+        # ? Selection Set {MDM, PM, RO, && , ||, ), ], ; ,DT, ID, while, for, if }
+        elif (Cp in ['multiply_divide_mod', 'plus_minus', 'relational_operator', 'and_operator', 'or_operator', ')', ']', 'EOL', 'data_type', 'identifier', 'while', 'for', 'if']):
+            return True
+        return False
+
+    @staticmethod
+    def opts1():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection Set { . }
+        if (Cp == '.'):
+            if (SA.token_set(SA.current_index).cp == 'identifier'):
+                SA.current_index += 1
+                if (SA.opts()):
+                    return True
+
+        # ? selecton set {MDM, PM, RO, && , ||, ), ], ; ,DT, ID, while, for, if}
+        elif (Cp in ['multiply_divide_mod', 'plus_minus', 'relational_operator', 'and_operator', 'or_operator', ')', ']', 'EOL', 'data_type', 'identifier', 'while', 'for', 'if']):
+            return True
+        return False
+
+    @staticmethod
+    def object():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection set {ID}
+        if (Cp == 'identifier'):
+            if (SA.token_set(SA.current_index).cp == 'identifier'):
+                SA.current_index += 1
+                if (SA.token_set(SA.current_index).cp == 'assignment_operator'):
+                    SA.current_index += 1
+                    if (SA.token_set(SA.current_index).cp == 'new'):
+                        SA.current_index += 1
+                        if (SA.token_set(SA.current_index).cp == 'identifier'):
+                            SA.current_index += 1
+                            if (SA.token_set(SA.current_index).cp == '('):
+                                SA.current_index += 1
+                                if (SA.token_set(SA.current_index).cp == ')'):
+                                    SA.current_index += 1
+                                    if (SA.token_set(SA.current_index).cp == 'EOL'):
+                                        SA.current_index += 1
+                                        return True
+
+        return False
+
+    @staticmethod
+    def return_st():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? selection set {return}
+        if (Cp == 'return'):
+            if (SA.return1()):
+                return True
+        return False
+
+    @staticmethod
+    def return1():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection set {true}
+        if (SA.token_set(SA.current_index).cp == 'true'):
+            SA.current_index += 1
+            if (SA.token_set(SA.current_index).cp == 'EOL'):
+                SA.current_index += 1
+                return True
+
+        # ? Selection set {false}
+        elif (SA.token_set(SA.current_index).cp == 'false'):
+            SA.current_index += 1
+            if (SA.token_set(SA.current_index).cp == 'EOL'):
+                SA.current_index += 1
+                return True
+
+        # ? Selection set {ID}
+        elif (Cp == 'identifier'):
+            if (SA.return2()):
+                return True
+
+        # ? Selection set {const}
+        elif (Cp == 'num'):
+            if (SA.token_set(SA.current_index).cp == 'num'):
+                SA.current_index += 1
+                if (SA.token_set(SA.current_index).cp == 'EOL'):
+                    SA.current_index += 1
+                    return True
+
+        # ? Selection set {DT}
+        elif (Cp == 'data_type'):
+            if (SA.decl()):
+                return True
+        return False
+
+    @staticmethod
+    def return2():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? Selection set {;}
+        if (Cp == 'EOL'):
+            return True
+
+        # ? Selection set {ID)
+        if (Cp == 'identifier'):
+            if (SA.token_set(SA.current_index).cp == 'assignment_operator'):
+                SA.current_index += 1
+                if (SA.token_set(SA.current_index).cp == 'new'):
+                    SA.current_index += 1
+                    if (SA.token_set(SA.current_index).cp == 'identifier'):
+                        SA.current_index += 1
+                        if (SA.token_set(SA.current_index).cp == '('):
+                            SA.current_index += 1
+                            if (SA.token_set(SA.current_index).cp == ')'):
+                                SA.current_index += 1
+                                return True
+        return False
+
+        # continue from if-body
+
+        # TODO define assign_st(), assign_op(), class_def(), OE(),
