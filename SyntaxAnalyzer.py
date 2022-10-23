@@ -1082,8 +1082,101 @@ class SA:
                             if (SA.token_set(SA.current_index).cp == ')'):
                                 SA.current_index += 1
                                 return True
+        elif (Cp == '('):
+            if (SA.p()):
+                if (SA.token_set(SA.current_index).cp == ')'):
+                    SA.current_index += 1
+                    if (SA.token_set(SA.current_index).cp == 'EOL'):
+                        return True
         return False
 
-        # continue from if-body
+    @staticmethod
+    def if_body():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? selection set {DT, ID, while, for, if , break, continue, pass}
+        if (Cp in ['data_type', 'identifier', 'while', 'for', 'if', 'jump_statements']):
+            if (SA.mst()):
+                if (SA.ifsst()):
+                    return True
+        return False
+
+    # @staticmethod
+    # def if_sst():
+    #     Cp = SA.token_set[SA.current_index].cp
+
+    #     #? selection set {break}
+    #     if(Cp == ''):
+    #         # incomplete
+
+    @staticmethod
+    def class_defs():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? selection set {final, static, abtract, class}
+
+        if (Cp == 'type_modifier'):
+            if (SA.token_set(SA.current_index).cp == 'class'):
+                SA.current_index += 1
+                if (SA.token_set(SA.current_index).cp == 'identifier'):
+                    SA.current_index += 1
+                    if (SA.inht()):
+                        if (SA.token_set(SA.current_index).cp == '{'):
+                            SA.current_index += 1
+                            if (SA.o_body()):
+                                if (SA.token_set(SA.current_index).cp == '}'):
+                                    return True
+        return False
+
+    @staticmethod
+    def tm():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? selection set {final}
+        if (Cp == 'final'):
+            if (SA.token_set(SA.current_index).cp == 'final'):
+                SA.current_index += 1
+                return True
+
+        elif (Cp == 'abstract'):
+            if (SA.token_set(SA.current_index).cp == 'abstract'):
+                SA.current_index += 1
+                return True
+
+        elif (Cp == 'static'):
+            if (SA.token_set(SA.current_index).cp == 'static'):
+                SA.current_index += 1
+                return True
+
+        elif (Cp == 'class'):
+            return True
+
+    @staticmethod
+    def inht():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? selection set {::}
+        if (Cp == '::'):
+            if (SA.token_set(SA.current_index).cp == 'identifier'):
+                SA.current_index += 1
+
+            if (SA.impl()):
+                return True
+
+        # ? selection set {implements}
+        elif (Cp == 'implements'):
+            if (SA.impl()):
+                return True
+
+        elif (Cp == '{'):
+            return True
+
+        return False
+
+    @staticmethod
+    def impl():
+        Cp = SA.token_set[SA.current_index].cp
+
+        # ? selection set
 
         # TODO define assign_st(), assign_op(), class_def(), OE(),
