@@ -1,9 +1,3 @@
-from locale import currency
-from os import stat
-from traceback import StackSummary
-from turtle import st
-
-
 class SA:
     token_set = []
     current_index = 0
@@ -1177,6 +1171,232 @@ class SA:
     def impl():
         Cp = SA.token_set[SA.current_index].cp
 
-        # ? selection set
+        # ! implementation is left
 
-        # TODO define assign_st(), assign_op(), class_def(), OE(),
+    @staticmethod
+    def o_body():
+        # ? selection_set => {public, hidden}
+        if(SA.token_set[SA.current_index].class_part == 'access_modifier'):
+            if(SA.am() and SA.o_body1()):
+                return True
+        # ? selection_set => {DT, ID, while, for, if, static, function, abstract}
+        elif(SA.token_set[SA.current_index].class_part in ['data_type', 'identifier', 'while', 'for', 'if', 'type_modifier', 'function']):
+            if(SA.mst() and SA.o_body1()):
+                return True
+        # ? selection_set => {construct}
+        elif(SA.token_set[SA.current_index].class_part == 'construct'):
+            if(SA.constructor() and SA.c_body()):
+                return True
+        # ? selection_set => { } }
+        elif(SA.token_set[SA.current_index].class_part == '}'):
+            return True
+
+        return False
+
+    @staticmethod
+    def o_body1():
+        # ? selection_set => {static, function}
+        if(SA.token_set[SA.current_index].class_part in ['type_modifier', 'function']):
+            if(SA.sta() and SA.func_def() and SA.c_body() and SA.o_body2()):
+                return True
+        # ? selection_set =>  {abstract}
+        elif(SA.token_set[SA.current_index].class_part == "type_modifier"):
+            SA.current_index += 1
+            if(SA.func_def() and SA.a_body()):
+                return True
+
+        return False
+
+    @staticmethod
+    def o_body2():
+        # ? selection_set => = {public, hidden, DT, ID, while, for, if}
+        if(SA.token_set[SA.current_index].class_part in ['access_modifier', 'data_type', 'identifier', 'while', 'for', 'if']):
+            if(SA.a_body()):
+                return True
+        # ? selection_set => { } }
+        if(SA.token_set[SA.current_index].class_part == '}'):
+            return True
+
+        return False
+
+    @staticmethod
+    def c_body():
+        # ? selection_set => {public, hidden}
+        if(SA.token_set[SA.current_index].class_part in ['access_modifier']):
+            if(SA.am() and SA.sta() and SA.func_def() and SA.c_body()):
+                return True
+        # ? selection_set => {DT, ID, while, for, if}
+        elif(SA.token_set[SA.current_index].class_part in ['data_type', 'identifier', 'while', 'for', 'if']):
+            if(SA.sst() and SA.mst() and SA.c_body()):
+                return True
+        # ? selection_set => {construct}
+        elif(SA.token_set[SA.current_index].class_part == 'construct'):
+            if(SA.constructor() and SA.c_body()):
+                return True
+
+        return False
+
+    @staticmethod
+    def sta():
+        # ? selection_set => {static}
+        if(SA.token_set[SA.current_index].class_part == 'type_modifier'):
+            return True
+        # ? selection_set => {function}
+        elif(SA.token_set[SA.current_index].class_part == 'function'):
+            return True
+
+        return False
+
+    @staticmethod
+    def constructor():
+        # ? selection_set => {construct}
+        if(SA.token_set[SA.current_index].class_part == 'construct'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].class_part == '('):
+                SA.current_index += 1
+                if(SA.para()):
+                    if(SA.token_set[SA.current_index].class_part == ')'):
+                        SA.current_index += 1
+                        if(SA.token_set[SA.current_index].class_part == '{'):
+                            SA.current_index += 1
+                            if(SA.con_body()):
+                                if(SA.token_set[SA.current_index].class_part == '}'):
+                                    SA.current_index += 1
+        return False
+
+    @staticmethod
+    def con_body():
+        # ? selection_set => {super}
+        if(SA.token_set[SA.current_index].class_part == 'super'):
+            SA.current_index += 1
+            if(SA.d()):
+                return True
+        # ? selection_set => {this}
+        elif(SA.token_set[SA.current_index].class_part == 'this'):
+            SA.current_index += 1
+            if(SA.b()):
+                return True
+
+        return False
+
+    @staticmethod
+    def d():
+        # ? selection_set => {   .  }
+        if(SA.token_set[SA.current_index].class_part == '.'):
+            SA.current_index += 1
+            if(SA.fn_call()):
+                return True
+        # ? selection_set => { ( }
+        elif(SA.token_set[SA.current_index].class_part == '('):
+            SA.current_index += 1
+            if(SA.p()):
+                if(SA.token_set[SA.current_index].class_part == ')'):
+                    SA.current_index += 1
+
+        return False
+
+    @staticmethod
+    def b():
+        # ? selection_set => {   .  }
+        if(SA.token_set[SA.current_index].class_part == '.'):
+            SA.current_index += 1
+            if(SA.assign_st()):
+                return True
+
+        return False
+
+    @staticmethod
+    def a_body():
+        # ? selection_set => {public, hidden, abstract}
+        if(SA.token_set[SA.current_index].class_part in ['access_modifier', 'type_modifier']):
+            if(SA.am() and SA.a_body1()):
+                return True
+        # ? selection_set => {public, hidden, static, function, DT, ID, while, for, if, construct}
+        if(SA.token_set[SA.current_index].class_part in ['access_modifier', 'type_modifier', 'function', 'data_type', 'identifier', 'while', 'for', 'if', 'construct']):
+            if(SA.sst() and SA.mst() and SA.a_body()):
+                return True
+        # ? selection_set =>  { } }
+        elif(SA.token_set[SA.current_index].class_part == '}'):
+            return True
+
+        return False
+
+    @staticmethod
+    def a_body1():
+        # ? selection_set => {static , function}
+        if(SA.token_set[SA.current_index].class_part in ['type_modifier', 'function']):
+            if(SA.sta() and SA.func_def() and SA.a_body()):
+                return True
+        # ? selection_set => {abstract}
+        elif(SA.token_set[SA.current_index].class_part in ['type_modifier']):
+            SA.current_index += 1
+            if(SA.func_def() and SA.a_body()):
+                return True
+
+        return False
+
+    @staticmethod
+    def if_body():
+        # ? selection_set => {DT, ID, while, for, if, break, continue, pass}
+        if(SA.token_set[SA.current_index].class_part in ['data_type', 'identifier', 'while', 'for', 'if', 'jump_statements']):
+            if(SA.mst() and SA.if_sst()):
+                return True
+
+        return False
+
+    @staticmethod
+    def if_sst():
+        # ? selection_set => {break, continue, pass}
+        if(SA.token_set[SA.current_index].class_part == 'jump_statements'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].class_part == 'EOL'):
+                SA.current_index += 1
+                return True
+        # ? selection_set => { ) }
+        elif(SA.token_set[SA.current_index].class_part == ')'):
+            return True
+
+        return False
+
+    @staticmethod
+    def return_st():
+        # ? selection_set =>  {return}
+        if(SA.token_set[SA.current_index].class_part == 'return'):
+            SA.current_index += 1
+            if(SA.return_st1()):
+                return True
+
+        return False
+
+    @staticmethod
+    def return_st1():
+        # ? selection_set => {bool }
+        if(SA.token_set[SA.current_index].class_part == 'bool'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].class_part == 'EOL'):
+                SA.current_index += 1
+                return True
+        # ? selection_set => {const}
+        elif(SA.token_set[SA.current_index].class_part == 'number'):
+            SA.current_index += 1
+            if(SA.token_set[SA.current_index].class_part == 'EOL'):
+                SA.current_index += 1
+                return True
+
+        return False
+
+    @staticmethod
+    def am():
+        # ? selection_set => {access_modifier}
+        if(SA.token_set[SA.current_index].class_part == 'access_modifier'):
+            SA.current_index += 1
+            return True
+        return False
+
+    @staticmethod
+    def error_handle():
+        # TODO implementation left
+        return False
+
+# ! correct cfgs and their implementation
+# ! check complete code
