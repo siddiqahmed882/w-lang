@@ -2,6 +2,11 @@ class SA:
     token_set = []
     current_index = 0
     end_index = 0
+    main_table = []
+    main_data_table = []
+    function_table = []
+    stack_scope = []
+    current_class = None
 
     @staticmethod
     def main(token_set):
@@ -13,7 +18,7 @@ class SA:
 
     @staticmethod
     def validate():
-        if (SA.S() and SA.token_set[SA.current_index].cp == "$"):
+        if (SA.S() and SA.token_set[SA.current_index].cp == "end_marker"):
             return True
         return False
 
@@ -21,8 +26,8 @@ class SA:
     def S():
         cp = SA.token_set[SA.current_index].cp
 
-        # ? selection_set => {DT, ID, while, for, if, return, break, continue, pass}
-        if (cp in ['data_type', 'idenitifier', 'while', 'for', 'if', 'return', 'jump_statements']):
+        # ? selection_set => {DT, ID, while, for, if,}
+        if (cp in ['data_type', 'idenitifier', 'while', 'for']):
             if (SA.sst() and SA.S()):
                 return True
 
@@ -79,9 +84,12 @@ class SA:
         # ? selection_set => {DT}
         if (cp == 'data_type'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index], 82)
             if (SA.A()):
-                if (cp == 'identifier'):
+                print(84)
+                if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index], 86)
                     if (SA.list()):
                         return True
 
@@ -90,19 +98,22 @@ class SA:
     @staticmethod
     def A():
         cp = SA.token_set[SA.current_index].cp
+        print(cp, 95)
 
         # ? selection_set => { [][]  }
         if (cp == 'arr_decl--1D'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             return True
 
         # ? selection_set => { [][]  }
         elif (cp == 'arr_decl--2D'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             return True
 
         # ? selection_set => {ID}
-        elif (cp == 'idenitifier'):
+        elif (cp == 'identifier'):
             return True
 
         return False
@@ -110,16 +121,19 @@ class SA:
     @staticmethod
     def list():
         cp = SA.token_set[SA.current_index].cp
+        print(cp, 119)
 
-        # ? selection_set => {  , }
+        # ? selection_set => { ,}
         if (cp == ','):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.decl()):
                 return True
 
         # ? selection_set => { ; }
-        elif (cp == ';'):
+        elif (cp == 'EOL'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             return True
 
         # ? selection_set => {=}
@@ -136,15 +150,20 @@ class SA:
         # ? selection_set => {=}
         if (cp == 'assignment'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == 'new'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.token_set[SA.current_index].cp == 'data_type'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.token_set[SA.current_index] == '['):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.p()):
                             if (SA.token_set[SA.current_index] == ']'):
                                 SA.current_index += 1
+                                print(SA.token_set[SA.current_index])
                                 return True
         # ? selection_set => { ; }
         elif (cp == ';'):
@@ -159,8 +178,10 @@ class SA:
         # ? selection_set =>  {ID}
         if (cp == 'identifier'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == '('):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.p() and SA.end()):
                     return True
 
@@ -173,6 +194,7 @@ class SA:
         # ? selection_set => { ; }
         if (cp == ';'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             return True
 
         # ? selection_set => {DT, ID, while, for, if, return,  break, continue, pass}
@@ -203,6 +225,7 @@ class SA:
         # ? selection_set => { , }
         if (cp == ','):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.OE() and SA.p1()):
                 return True
 
@@ -219,18 +242,25 @@ class SA:
         # ? selection_set => {func}
         if (cp == 'func'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.FDT1()):
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.token_set[SA.current_index].cp == '('):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.para()):
                             if (SA.token_set[SA.current_index].cp == ')'):
                                 SA.current_index += 1
+                                print(SA.token_set[SA.current_index])
                                 if (SA.token_set[SA.current_index].cp == "{"):
                                     SA.current_index += 1
+                                    print(SA.token_set[SA.current_index])
                                     if (SA.mst()):
                                         if (SA.token_set[SA.current_index].cp == '}'):
+                                            print(
+                                                SA.token_set[SA.current_index])
                                             SA.current_index += 1
                                             return True
 
@@ -243,11 +273,13 @@ class SA:
         # ? selection_set => {DT}
         if (cp == 'data_type'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.A()):
                 return True
         # ? selection_set => {ID}
         elif (cp == 'identifier'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.A()):
                 return True
 
@@ -264,6 +296,7 @@ class SA:
         # ? selection_set => { void }
         elif (cp == 'void'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             return True
 
         return False
@@ -277,6 +310,7 @@ class SA:
             if (SA.FDT()):
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.s_para()):
                         return True
         # ? selection_set => { ) }
@@ -292,9 +326,11 @@ class SA:
         # ? selection_set => {  ,  }
         if (cp == ','):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.FDT()):
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.s_para):
                         return True
         # ? selection_set => { ) }
@@ -310,13 +346,17 @@ class SA:
         # ? selection_set => {while}
         if (cp == 'while'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == '('):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.OE()):
                     if (SA.token_set[SA.current_index].cp == ')'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.token_set[SA.current_index].cp == '{'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.mst()):
                                 if (SA.token_set[SA.current_index].cp == '}'):
                                     return True
@@ -330,19 +370,26 @@ class SA:
         # ? selection_set => {for}
         if (cp == 'for'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == '('):
                 SA.current_index += 1
-                if (SA.assign_st()):
+                print(SA.token_set[SA.current_index])
+                if (SA.ass_st()):
                     if (SA.OE()):
                         if (SA.token_set[SA.current_index].cp == ';'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.inc_dec_st()):
                                 if (SA.token_set[SA.current_index].cp == ')'):
                                     SA.current_index += 1
+                                    print(SA.token_set[SA.current_index])
                                     if (SA.token_set[SA.current_index].cp == '{'):
                                         SA.current_index += 1
+                                        print(SA.token_set[SA.current_index])
                                         if (SA.mst()):
                                             if (SA.token_set[SA.current_index].cp == '}'):
+                                                print(
+                                                    SA.token_set[SA.current_index])
                                                 SA.current_index += 1
                                                 return True
 
@@ -355,19 +402,23 @@ class SA:
         # ? selection_set => {ID}
         if (cp == 'identifier'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.inc_dec_st1()):
                 if (SA.inc_dec_opr()):
                     if (SA.token_set[SA.current_index].cp == ';'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         return True
         # ? selection_set => { ++ , -- }
         elif (cp == 'inc_dec'):
             if (SA.inc_dec_opr()):
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.inc_dec_st1()):
                         if (SA.token_set[SA.current_index].cp == ';'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             return True
         return False
 
@@ -378,28 +429,36 @@ class SA:
         # ? selection_set => { . }
         if (cp == '.'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index] == 'identifier'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.inc_dec_st1()):
                     return True
         # ? selection_set => { ( }
         elif (cp == '('):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.p()):
                 if (SA.token_set[SA.current_index].cp == ')'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.token_set[SA.current_index].cp == '.'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.token_set[SA.current_index] == 'identifier'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.inc_dec_st1()):
                                 return True
         # ? selection_set => { [ }
         elif (cp == '['):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.OE()):
                 if (SA.token_set[SA.current_index].cp == ']'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.inc_dec_st2()):
                         return True
         # ? selection_set => {++, --, DT, ID, while, for, if, return, break, continue, pass,  ; }
@@ -415,8 +474,10 @@ class SA:
         # ? selection_set => {  .  }
         if (cp == '.'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == 'identifier'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.inc_dec_st1()):
                     return True
         # ? selection_set => { ++, --, DT, ID, while, for, if, return, break, continue, pass, ; }
@@ -447,6 +508,7 @@ class SA:
         # ? selection_set => {++, --}
         if (cp == 'inc_dec'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             return True
 
         return False
@@ -469,6 +531,7 @@ class SA:
         # ? selection_set => {ID}
         if (cp == 'identifier'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.AFCI1()):
                 return True
 
@@ -488,37 +551,47 @@ class SA:
             if (SA.inc_dec_opr()):
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.inc_dec_st1()):
                         return True
         # ? selection_set => { ( }
         elif (cp == '('):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.p()):
                 if (SA.token_set[SA.current_index].cp == ')'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.end()):
                         return True
         # ? selection_set =>  { . , ( , [ , = , CO as compound_assignment }
         elif (cp in ['.', '(', '[', 'assignment', 'compound_assignment']):
-            if (SA.assign_st()):
+            if (SA.ass_st()):
                 if (SA.assign_op()):
                     if (SA.OE()):
                         return True
         # ? selection_set => { ID }
         elif (cp == 'identifier'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == 'assignment'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.token_set[SA.current_index].cp == 'new'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.token_set[SA.current_index].cp == 'identifier'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.token_set[SA.current_index].cp == '('):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.token_set[SA.current_index].cp == ')'):
                                 SA.current_index += 1
+                                print(SA.token_set[SA.current_index])
                                 if (SA.token_set[SA.current_index].cp == ';'):
                                     SA.current_index += 1
+                                    print(SA.token_set[SA.current_index])
                                     return True
 
         return False
@@ -545,14 +618,18 @@ class SA:
         # ? selection_set => {interface}
         if (cp == 'interface'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == 'identifier'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.impl()):
                     if (SA.token_set[SA.current_index].cp == '{'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.interface_body()):
                             if (SA.token_set[SA.current_index].cp == '}'):
                                 SA.current_index += 1
+                                print(SA.token_set[SA.current_index])
                                 return True
 
         return False
@@ -564,8 +641,10 @@ class SA:
         # ? selection_set => {implements}
         if (cp == 'implements'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == 'identifier'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.nt()):
                     return True
 
@@ -580,11 +659,14 @@ class SA:
             if (SA.FDT1()):
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.token_set[SA.current_index].cp == '('):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.para()):
                             if (SA.token_set[SA.current_index].cp == ')'):
                                 SA.current_index += 1
+                                print(SA.token_set[SA.current_index])
                                 return True
         # ? selection_set => {DT}
         if (cp == 'data_type'):
@@ -600,8 +682,10 @@ class SA:
         # ? selection_set => {  , }
         if (cp == ','):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == 'identifier'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.nt()):
                     return True
         # ? selection_set => { { }
@@ -618,16 +702,21 @@ class SA:
         # ? Selection Set => { if }
         if (Cp == 'if'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == '('):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.oe()):
                     if (SA.token_set[SA.current_index].cp == ')'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.token_set[SA.current_index].cp == '{'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.mst()):
                                 if (SA.token_set[SA.current_index].cp == '}'):
                                     SA.current_index += 1
+                                    print(SA.token_set[SA.current_index])
                                     if (SA.elif_st()):
                                         if (SA.else_st()):
                                             return True
@@ -640,16 +729,21 @@ class SA:
         # ? Selection Set => {elif}
         if (Cp == 'elif'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == '('):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.oe()):
                     if (SA.token_set[SA.current_index].cp == ')'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.token_set[SA.current_index].cp == '{'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.mst()):
                                 if (SA.token_set[SA.current_index].cp == '}'):
                                     SA.current_index += 1
+                                    print(SA.token_set[SA.current_index])
                                     if (SA.elif_st()):
                                         return True
         # ? Selection Set {else, DT, ID, while, for, if, return, break, continue, pass}
@@ -664,11 +758,14 @@ class SA:
         # ? Selection Set => {else}
         if (Cp == 'else'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == '{'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.mst()):
                     if (SA.token_set[SA.current_index].cp == '}'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         return True
         # ? Selection Set (DT, ID, while, for, if, return, break, continue, pass)
 
@@ -679,15 +776,17 @@ class SA:
     @staticmethod
     def ass_st():
         Cp = SA.token_set[SA.current_index].cp
-
         # ? Selection Set {ID}
         if (Cp == 'identifier'):
             SA.current_index += 1
+            print('here')
+            print(SA.token_set[SA.current_index])
             if (SA.ass_st1()):
                 if (SA.ass_op()):
                     if (SA.oe()):
                         if (SA.token_set[SA.current_index].cp == 'EOL'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             return True
         return False
 
@@ -696,10 +795,12 @@ class SA:
         Cp = SA.token_set[SA.current_index].cp
 
         # ? Selection Set { . }
-        if (Cp == ' . '):
+        if (Cp == '.'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == "identifier"):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.ass_st2()):
                     return True
 
@@ -716,30 +817,39 @@ class SA:
 
         if (Cp == '.'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set[SA.current_index].cp == '.'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.ass_st1()):
                         return True
 
             elif (Cp == '('):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.oe()):
                     if (SA.token_set[SA.current_index].cp == ')'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.token_set[SA.current_index].cp == '.'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.token_set[SA.token_set].cp == 'identifier'):
                                 SA.current_index += 1
+                                print(SA.token_set[SA.current_index])
                                 if (SA.ass_st1()):
                                     return True
             # ? Selection Set { [ }
             elif (Cp == '['):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.oe()):
                     if (SA.token_set[SA.current_index].cp == ']'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.ass_st2()):
                             return True
 
@@ -898,6 +1008,7 @@ class SA:
             if (SA.ts()):
                 if (SA.token_set[SA.current_index].cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.opts()):
                         return True
 
@@ -940,6 +1051,7 @@ class SA:
         if (Cp == '.'):
             if (SA.token_set[SA.current_index].cp == 'identifier'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.opts()):
                     return True
 
@@ -948,10 +1060,13 @@ class SA:
             if (SA.p()):
                 if (SA.token_set[SA.current_index].cp == ')'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.token_set(SA.current_index).cp == '.'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.token_set(SA.current_index).cp == 'identifier'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.opts()):
                                 return True
 
@@ -960,6 +1075,7 @@ class SA:
             if (SA.oe()):
                 if (SA.token_set(SA.current_index).cp == ']'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.opts1()):
                         return True
 
@@ -976,6 +1092,7 @@ class SA:
         if (Cp == '.'):
             if (SA.token_set(SA.current_index).cp == 'identifier'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.opts()):
                     return True
 
@@ -992,18 +1109,25 @@ class SA:
         if (Cp == 'identifier'):
             if (SA.token_set(SA.current_index).cp == 'identifier'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.token_set(SA.current_index).cp == 'assignment_operator'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.token_set(SA.current_index).cp == 'new'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.token_set(SA.current_index).cp == 'identifier'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.token_set(SA.current_index).cp == '('):
                                 SA.current_index += 1
+                                print(SA.token_set[SA.current_index])
                                 if (SA.token_set(SA.current_index).cp == ')'):
                                     SA.current_index += 1
+                                    print(SA.token_set[SA.current_index])
                                     if (SA.token_set(SA.current_index).cp == 'EOL'):
                                         SA.current_index += 1
+                                        print(SA.token_set[SA.current_index])
                                         return True
 
         return False
@@ -1025,15 +1149,19 @@ class SA:
         # ? Selection set {true}
         if (SA.token_set(SA.current_index).cp == 'true'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set(SA.current_index).cp == 'EOL'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 return True
 
         # ? Selection set {false}
         elif (SA.token_set(SA.current_index).cp == 'false'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             if (SA.token_set(SA.current_index).cp == 'EOL'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 return True
 
         # ? Selection set {ID}
@@ -1045,8 +1173,10 @@ class SA:
         elif (Cp == 'num'):
             if (SA.token_set(SA.current_index).cp == 'num'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.token_set(SA.current_index).cp == 'EOL'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     return True
 
         # ? Selection set {DT}
@@ -1067,19 +1197,25 @@ class SA:
         if (Cp == 'identifier'):
             if (SA.token_set(SA.current_index).cp == 'assignment_operator'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.token_set(SA.current_index).cp == 'new'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.token_set(SA.current_index).cp == 'identifier'):
                         SA.current_index += 1
+                        print(SA.token_set[SA.current_index])
                         if (SA.token_set(SA.current_index).cp == '('):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.token_set(SA.current_index).cp == ')'):
                                 SA.current_index += 1
+                                print(SA.token_set[SA.current_index])
                                 return True
         elif (Cp == '('):
             if (SA.p()):
                 if (SA.token_set(SA.current_index).cp == ')'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.token_set(SA.current_index).cp == 'EOL'):
                         return True
         return False
@@ -1112,11 +1248,14 @@ class SA:
         if (Cp == 'type_modifier'):
             if (SA.token_set(SA.current_index).cp == 'class'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 if (SA.token_set(SA.current_index).cp == 'identifier'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
                     if (SA.inht()):
                         if (SA.token_set(SA.current_index).cp == '{'):
                             SA.current_index += 1
+                            print(SA.token_set[SA.current_index])
                             if (SA.o_body()):
                                 if (SA.token_set(SA.current_index).cp == '}'):
                                     return True
@@ -1130,16 +1269,19 @@ class SA:
         if (Cp == 'final'):
             if (SA.token_set(SA.current_index).cp == 'final'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 return True
 
         elif (Cp == 'abstract'):
             if (SA.token_set(SA.current_index).cp == 'abstract'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 return True
 
         elif (Cp == 'static'):
             if (SA.token_set(SA.current_index).cp == 'static'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 return True
 
         elif (Cp == 'class'):
@@ -1153,6 +1295,7 @@ class SA:
         if (Cp == '::'):
             if (SA.token_set(SA.current_index).cp == 'identifier'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
 
             if (SA.impl()):
                 return True
@@ -1176,19 +1319,19 @@ class SA:
     @staticmethod
     def o_body():
         # ? selection_set => {public, hidden}
-        if(SA.token_set[SA.current_index].class_part == 'access_modifier'):
-            if(SA.am() and SA.o_body1()):
+        if (SA.token_set[SA.current_index].class_part == 'access_modifier'):
+            if (SA.am() and SA.o_body1()):
                 return True
         # ? selection_set => {DT, ID, while, for, if, static, function, abstract}
-        elif(SA.token_set[SA.current_index].class_part in ['data_type', 'identifier', 'while', 'for', 'if', 'type_modifier', 'function']):
-            if(SA.mst() and SA.o_body1()):
+        elif (SA.token_set[SA.current_index].class_part in ['data_type', 'identifier', 'while', 'for', 'if', 'type_modifier', 'function']):
+            if (SA.mst() and SA.o_body1()):
                 return True
         # ? selection_set => {construct}
-        elif(SA.token_set[SA.current_index].class_part == 'construct'):
-            if(SA.constructor() and SA.c_body()):
+        elif (SA.token_set[SA.current_index].class_part == 'construct'):
+            if (SA.constructor() and SA.c_body()):
                 return True
         # ? selection_set => { } }
-        elif(SA.token_set[SA.current_index].class_part == '}'):
+        elif (SA.token_set[SA.current_index].class_part == '}'):
             return True
 
         return False
@@ -1196,13 +1339,14 @@ class SA:
     @staticmethod
     def o_body1():
         # ? selection_set => {static, function}
-        if(SA.token_set[SA.current_index].class_part in ['type_modifier', 'function']):
-            if(SA.sta() and SA.func_def() and SA.c_body() and SA.o_body2()):
+        if (SA.token_set[SA.current_index].class_part in ['type_modifier', 'function']):
+            if (SA.sta() and SA.func_def() and SA.c_body() and SA.o_body2()):
                 return True
         # ? selection_set =>  {abstract}
-        elif(SA.token_set[SA.current_index].class_part == "type_modifier"):
+        elif (SA.token_set[SA.current_index].class_part == "type_modifier"):
             SA.current_index += 1
-            if(SA.func_def() and SA.a_body()):
+            print(SA.token_set[SA.current_index])
+            if (SA.func_def() and SA.a_body()):
                 return True
 
         return False
@@ -1210,11 +1354,11 @@ class SA:
     @staticmethod
     def o_body2():
         # ? selection_set => = {public, hidden, DT, ID, while, for, if}
-        if(SA.token_set[SA.current_index].class_part in ['access_modifier', 'data_type', 'identifier', 'while', 'for', 'if']):
-            if(SA.a_body()):
+        if (SA.token_set[SA.current_index].class_part in ['access_modifier', 'data_type', 'identifier', 'while', 'for', 'if']):
+            if (SA.a_body()):
                 return True
         # ? selection_set => { } }
-        if(SA.token_set[SA.current_index].class_part == '}'):
+        if (SA.token_set[SA.current_index].class_part == '}'):
             return True
 
         return False
@@ -1222,16 +1366,16 @@ class SA:
     @staticmethod
     def c_body():
         # ? selection_set => {public, hidden}
-        if(SA.token_set[SA.current_index].class_part in ['access_modifier']):
-            if(SA.am() and SA.sta() and SA.func_def() and SA.c_body()):
+        if (SA.token_set[SA.current_index].class_part in ['access_modifier']):
+            if (SA.am() and SA.sta() and SA.func_def() and SA.c_body()):
                 return True
         # ? selection_set => {DT, ID, while, for, if}
-        elif(SA.token_set[SA.current_index].class_part in ['data_type', 'identifier', 'while', 'for', 'if']):
-            if(SA.sst() and SA.mst() and SA.c_body()):
+        elif (SA.token_set[SA.current_index].class_part in ['data_type', 'identifier', 'while', 'for', 'if']):
+            if (SA.sst() and SA.mst() and SA.c_body()):
                 return True
         # ? selection_set => {construct}
-        elif(SA.token_set[SA.current_index].class_part == 'construct'):
-            if(SA.constructor() and SA.c_body()):
+        elif (SA.token_set[SA.current_index].class_part == 'construct'):
+            if (SA.constructor() and SA.c_body()):
                 return True
 
         return False
@@ -1239,10 +1383,10 @@ class SA:
     @staticmethod
     def sta():
         # ? selection_set => {static}
-        if(SA.token_set[SA.current_index].class_part == 'type_modifier'):
+        if (SA.token_set[SA.current_index].class_part == 'type_modifier'):
             return True
         # ? selection_set => {function}
-        elif(SA.token_set[SA.current_index].class_part == 'function'):
+        elif (SA.token_set[SA.current_index].class_part == 'function'):
             return True
 
         return False
@@ -1250,31 +1394,38 @@ class SA:
     @staticmethod
     def constructor():
         # ? selection_set => {construct}
-        if(SA.token_set[SA.current_index].class_part == 'construct'):
+        if (SA.token_set[SA.current_index].class_part == 'construct'):
             SA.current_index += 1
-            if(SA.token_set[SA.current_index].class_part == '('):
+            print(SA.token_set[SA.current_index])
+            if (SA.token_set[SA.current_index].class_part == '('):
                 SA.current_index += 1
-                if(SA.para()):
-                    if(SA.token_set[SA.current_index].class_part == ')'):
+                print(SA.token_set[SA.current_index])
+                if (SA.para()):
+                    if (SA.token_set[SA.current_index].class_part == ')'):
                         SA.current_index += 1
-                        if(SA.token_set[SA.current_index].class_part == '{'):
+                        print(SA.token_set[SA.current_index])
+                        if (SA.token_set[SA.current_index].class_part == '{'):
                             SA.current_index += 1
-                            if(SA.con_body()):
-                                if(SA.token_set[SA.current_index].class_part == '}'):
+                            print(SA.token_set[SA.current_index])
+                            if (SA.con_body()):
+                                if (SA.token_set[SA.current_index].class_part == '}'):
                                     SA.current_index += 1
+                                    print(SA.token_set[SA.current_index])
         return False
 
     @staticmethod
     def con_body():
         # ? selection_set => {super}
-        if(SA.token_set[SA.current_index].class_part == 'super'):
+        if (SA.token_set[SA.current_index].class_part == 'super'):
             SA.current_index += 1
-            if(SA.d()):
+            print(SA.token_set[SA.current_index])
+            if (SA.d()):
                 return True
         # ? selection_set => {this}
-        elif(SA.token_set[SA.current_index].class_part == 'this'):
+        elif (SA.token_set[SA.current_index].class_part == 'this'):
             SA.current_index += 1
-            if(SA.b()):
+            print(SA.token_set[SA.current_index])
+            if (SA.b()):
                 return True
 
         return False
@@ -1282,25 +1433,29 @@ class SA:
     @staticmethod
     def d():
         # ? selection_set => {   .  }
-        if(SA.token_set[SA.current_index].class_part == '.'):
+        if (SA.token_set[SA.current_index].class_part == '.'):
             SA.current_index += 1
-            if(SA.fn_call()):
+            print(SA.token_set[SA.current_index])
+            if (SA.fn_call()):
                 return True
         # ? selection_set => { ( }
-        elif(SA.token_set[SA.current_index].class_part == '('):
+        elif (SA.token_set[SA.current_index].class_part == '('):
             SA.current_index += 1
-            if(SA.p()):
-                if(SA.token_set[SA.current_index].class_part == ')'):
+            print(SA.token_set[SA.current_index])
+            if (SA.p()):
+                if (SA.token_set[SA.current_index].class_part == ')'):
                     SA.current_index += 1
+                    print(SA.token_set[SA.current_index])
 
         return False
 
     @staticmethod
     def b():
         # ? selection_set => {   .  }
-        if(SA.token_set[SA.current_index].class_part == '.'):
+        if (SA.token_set[SA.current_index].class_part == '.'):
             SA.current_index += 1
-            if(SA.assign_st()):
+            print(SA.token_set[SA.current_index])
+            if (SA.ass_st()):
                 return True
 
         return False
@@ -1308,15 +1463,15 @@ class SA:
     @staticmethod
     def a_body():
         # ? selection_set => {public, hidden, abstract}
-        if(SA.token_set[SA.current_index].class_part in ['access_modifier', 'type_modifier']):
-            if(SA.am() and SA.a_body1()):
+        if (SA.token_set[SA.current_index].class_part in ['access_modifier', 'type_modifier']):
+            if (SA.am() and SA.a_body1()):
                 return True
         # ? selection_set => {public, hidden, static, function, DT, ID, while, for, if, construct}
-        if(SA.token_set[SA.current_index].class_part in ['access_modifier', 'type_modifier', 'function', 'data_type', 'identifier', 'while', 'for', 'if', 'construct']):
-            if(SA.sst() and SA.mst() and SA.a_body()):
+        if (SA.token_set[SA.current_index].class_part in ['access_modifier', 'type_modifier', 'function', 'data_type', 'identifier', 'while', 'for', 'if', 'construct']):
+            if (SA.sst() and SA.mst() and SA.a_body()):
                 return True
         # ? selection_set =>  { } }
-        elif(SA.token_set[SA.current_index].class_part == '}'):
+        elif (SA.token_set[SA.current_index].class_part == '}'):
             return True
 
         return False
@@ -1324,13 +1479,14 @@ class SA:
     @staticmethod
     def a_body1():
         # ? selection_set => {static , function}
-        if(SA.token_set[SA.current_index].class_part in ['type_modifier', 'function']):
-            if(SA.sta() and SA.func_def() and SA.a_body()):
+        if (SA.token_set[SA.current_index].class_part in ['type_modifier', 'function']):
+            if (SA.sta() and SA.func_def() and SA.a_body()):
                 return True
         # ? selection_set => {abstract}
-        elif(SA.token_set[SA.current_index].class_part in ['type_modifier']):
+        elif (SA.token_set[SA.current_index].class_part in ['type_modifier']):
             SA.current_index += 1
-            if(SA.func_def() and SA.a_body()):
+            print(SA.token_set[SA.current_index])
+            if (SA.func_def() and SA.a_body()):
                 return True
 
         return False
@@ -1338,8 +1494,8 @@ class SA:
     @staticmethod
     def if_body():
         # ? selection_set => {DT, ID, while, for, if, break, continue, pass}
-        if(SA.token_set[SA.current_index].class_part in ['data_type', 'identifier', 'while', 'for', 'if', 'jump_statements']):
-            if(SA.mst() and SA.if_sst()):
+        if (SA.token_set[SA.current_index].class_part in ['data_type', 'identifier', 'while', 'for', 'if', 'jump_statements']):
+            if (SA.mst() and SA.if_sst()):
                 return True
 
         return False
@@ -1347,13 +1503,15 @@ class SA:
     @staticmethod
     def if_sst():
         # ? selection_set => {break, continue, pass}
-        if(SA.token_set[SA.current_index].class_part == 'jump_statements'):
+        if (SA.token_set[SA.current_index].class_part == 'jump_statements'):
             SA.current_index += 1
-            if(SA.token_set[SA.current_index].class_part == 'EOL'):
+            print(SA.token_set[SA.current_index])
+            if (SA.token_set[SA.current_index].class_part == 'EOL'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 return True
         # ? selection_set => { ) }
-        elif(SA.token_set[SA.current_index].class_part == ')'):
+        elif (SA.token_set[SA.current_index].class_part == ')'):
             return True
 
         return False
@@ -1361,9 +1519,10 @@ class SA:
     @staticmethod
     def return_st():
         # ? selection_set =>  {return}
-        if(SA.token_set[SA.current_index].class_part == 'return'):
+        if (SA.token_set[SA.current_index].class_part == 'return'):
             SA.current_index += 1
-            if(SA.return_st1()):
+            print(SA.token_set[SA.current_index])
+            if (SA.return_st1()):
                 return True
 
         return False
@@ -1371,16 +1530,20 @@ class SA:
     @staticmethod
     def return_st1():
         # ? selection_set => {bool }
-        if(SA.token_set[SA.current_index].class_part == 'bool'):
+        if (SA.token_set[SA.current_index].class_part == 'bool'):
             SA.current_index += 1
-            if(SA.token_set[SA.current_index].class_part == 'EOL'):
+            print(SA.token_set[SA.current_index])
+            if (SA.token_set[SA.current_index].class_part == 'EOL'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 return True
         # ? selection_set => {const}
-        elif(SA.token_set[SA.current_index].class_part == 'number'):
+        elif (SA.token_set[SA.current_index].class_part == 'number'):
             SA.current_index += 1
-            if(SA.token_set[SA.current_index].class_part == 'EOL'):
+            print(SA.token_set[SA.current_index])
+            if (SA.token_set[SA.current_index].class_part == 'EOL'):
                 SA.current_index += 1
+                print(SA.token_set[SA.current_index])
                 return True
 
         return False
@@ -1388,8 +1551,9 @@ class SA:
     @staticmethod
     def am():
         # ? selection_set => {access_modifier}
-        if(SA.token_set[SA.current_index].class_part == 'access_modifier'):
+        if (SA.token_set[SA.current_index].class_part == 'access_modifier'):
             SA.current_index += 1
+            print(SA.token_set[SA.current_index])
             return True
         return False
 

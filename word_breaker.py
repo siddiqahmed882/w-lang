@@ -157,7 +157,7 @@ def break_into_words_and_generate_tokens(string):
                 word = ""
             tokens.append(generate_token(temp, line_number))
             # ? increment line number
-            if (string[char_index] == "\n" or char_index == str_len):
+            if (char_index == str_len or string[char_index] == "\n"):
                 char_index += 1
                 line_number += 1
         else:
